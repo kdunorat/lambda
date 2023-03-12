@@ -1,8 +1,7 @@
-#!/usr/bin/env python
+
 
 import requests
 from bs4 import BeautifulSoup
-import time
 
 
 def get_csv(smiles, method):
@@ -49,5 +48,4 @@ def download_csv(smiles, method):
 
 if __name__ == '__main__':
     smiles = "C1=CC=C(C=C1)C=O\r\nCC(=O)OC1=CC=CC=C1C(=O)O\r\nC1=CC(=C(C=C1/C=C\C(=O)O)O)O"
-    aspirin_smiles = "CC(=O)OC1=CC=CC=C1C(=O)O"
     download_csv(smiles, "2")
