@@ -12,26 +12,26 @@ def cli():
 
     usage = f"""Usage: {argv[0]} [options] (smiles [filename])...
 
-Downloads ADMET analysis for smiles in csv format file downloaded from
-admetlab2 web portal.
+    Downloads ADMET analysis for smiles in csv format file downloaded from
+    admetlab2 web portal.
 
-Options:
-    -s, --smiles-only           : Doesn't expect filenames to be passed.
-                                  Saves with default name provided by the
-                                  portal. (Default: False)
-    -H, --header                : Include header on downloaded csv.
-                                  (Default: False)
-    -c, --csv                   : Whether to keep contents of admet
-                                  analysis as a csv or convert it to a tsv
-                                  one. (Default: False)
+    Options:
+            -s, --smiles-only           : Doesn't expect filenames to be passed.
+                                          Saves with default name provided by the
+                                          portal. (Default: False)
+            -H, --header                : Include header on downloaded csv.
+                                          (Default: False)
+            -c, --csv                   : Whether to keep contents of admet
+                                          analysis as a csv or convert it to a tsv
+                                          one. (Default: False)
 
-    - , --stdin                 : Take input smiles from stdin. (Default:
-                                  False).
-    -O, --stdout                : Prints results to stdout instead of file.
-                                  (Default: False)
-    -i, --input-file <file>     : File from which to take the input smiles.
+            - , --stdin                 : Take input smiles from stdin. (Default:
+                                          False).
+            -O, --stdout                : Prints results to stdout instead of file.
+                                          (Default: False)
+            -i, --input-file <file>     : File from which to take the input smiles.
 
-    -h, --help                  : Prints this message.
+            -h, --help                  : Prints this message.
 
 If using smiles and filenames (so, if '-s' / '--smiles-only' or '-O' /
 '--stdout'are not used), each smiles must be followed by a whitespace and
@@ -55,6 +55,7 @@ processed first."""
 
     args_raw = deque(argv[1:])
     args = deque([])
+    smiles_list = ''
 
     while args_raw:
         arg = args_raw.popleft()
@@ -127,7 +128,7 @@ processed first."""
 
     if not only_smiles and not use_stdout and input_file is None and len(args) % 2 == 1:
         print("Error: You must use pairs of (smile filename) or use the -s (--smiles-only) or the -O (--stdout) "
-              "options.\n")
+              " or the -i (--input-file <file>) options.\n")
         print(usage)
         exit(1)
 
@@ -141,15 +142,20 @@ processed first."""
             smiles.append((arg, args.popleft()))
 
     if input_file:
+        smiles_list = ""
         with open(input_file, 'r') as ifile:
             if only_smiles or use_stdout:
                 for line in ifile.read().splitlines():
                     smiles.append(line)
+
             else:
                 for line in ifile.read().splitlines():
-                    line = line.split('\t')
+                    line = line.split(' ')
+                    print(line)
                     print(f'smiles: {line[0]}, file: {line[1]}')
                     smiles.append((line[0], line[1]))
+    for smi in smiles:
+        smiles_list += f"{smi}\r\n"
 
     if use_stdin:
         if only_smiles or use_stdout:
@@ -161,13 +167,13 @@ processed first."""
                 line = line.rstrip().split('\t')
                 smiles.append((line[0], line[1]))
 
-    for smi in smiles:
+    else:
         if only_smiles or use_stdout:
-            print(f'smiles: {smi}')
-            download_admet(smi, to_stdout=use_stdout, header=header, csv=csv)
+            download_admet(smiles_list, to_stdout=use_stdout, header=header, csv=csv)
         else:
-            print(f'smiles: {smi[0]} , filename: {smi[1]}')
-            download_admet(smi[0], filename=smi[1], header=header, csv=csv)
+            for smi in smiles:
+                print(f'smiles: {smi[0]} , filename: {smi[1]}')
+                download_admet(smi[0], filename=smi[1], header=header, csv=csv)
 
 
 if __name__ == '__main__':
