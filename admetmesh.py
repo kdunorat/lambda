@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 
 def get_csv(smiles):
-    """Obtém o nome do arquivo csv gerado pelo smiles"""
+    """Obtém o nome e o path do arquivo csv gerado pelo smiles"""
     try:
         path = ''
         url = f"https://admetmesh.scbdd.com/service/screening/cal"
