@@ -1,180 +1,364 @@
 #!/usr/bin/env python
 
+from math import ceil
 from sys import argv
 from sys import exit
 from sys import stdin
+from sys import stderr
 from collections import deque
 from os.path import isfile
 from admetmesh import download_admet
 
 
-def cli():
+def help(exit_code):
+    usage = f"""Usage: {argv[0]} [options] [-o <output-file>] (smiles)...
 
-    usage = f"""Usage: {argv[0]} [options] (smiles [filename])...
+Downloads ADMET analysis for smiles in csv format downloaded from admetlab2 web
+portal. Outputs into stdout by defualt.
 
-    Downloads ADMET analysis for smiles in csv format file downloaded from
-    admetlab2 web portal.
+Options:
+        -H, --header                : Include header on downloaded csv.
+                                      (Default: False)
+        -c, --csv                   : Keep contents of admet analysis as a csv
+                                      instead of converting it to a tsv one.
+                                      (Default: False)
+        -p, --prefix <prefix>       : Prefixes every smiles' result with the
+                                      given string.
+        -d, --delimiter <del>       : Used with "stding" or "input file". Uses
+                                      the given delimiter to identify where
+                                      the prefix ends and the smiles begins.
+                                      (Default: Tabulation "\\t" )
+        -a, --append                : Append to output file instead of
+                                      overwriting. Must be specified before the
+                                      "--output-file" option. (Default: False)
+        -f, --force                 : If the "--output-file" already exists and
+                                      "--append" is False, just overwrite it.
+                                      By default, returns an error. Must be
+                                      specified before the "--output-file"
+                                      option. (Default: False)
 
-    Options:
-            -s, --smiles-only           : Doesn't expect filenames to be passed.
-                                          Saves with default name provided by the
-                                          portal. (Default: False)
-            -H, --header                : Include header on downloaded csv.
-                                          (Default: False)
-            -c, --csv                   : Whether to keep contents of admet
-                                          analysis as a csv or convert it to a tsv
-                                          one. (Default: False)
+        - , --stdin                 : Take input smiles from stdin. (Default:
+                                      False).
+        -o, --output-file <file>    : Output result to file. (Default:
+                                      admetlab2_script_result_randomnumber , 
+                                      where the randomnumber is anywhere from
+                                      1 to 1000000000000000)
+        -N, --no-stdout             : Disable printing to stdout.
+        -i, --input-file <file>     : File from which to take the input smiles.
 
-            - , --stdin                 : Take input smiles from stdin. (Default:
-                                          False).
-            -O, --stdout                : Prints results to stdout instead of file.
-                                          (Default: False)
-            -i, --input-file <file>     : File from which to take the input smiles.
+        -h, --help                  : Prints this message.
 
-            -h, --help                  : Prints this message.
+The smiles on the resulting output is the one passed as input, not the one
+returned by the admetlab2 web.
 
-If using smiles and filenames (so, if '-s' / '--smiles-only' or '-O' /
-'--stdout'are not used), each smiles must be followed by a whitespace and
-its respective filename when passed as a command line argument or followed
-by a tab and the filename if the input method is a file or stdin.
+The prefix passed through the parameters is repeated at the beggining of every
+smiles result. If passed multiple times on the script's arguments all of them
+are concatenated in the order they were inputed.
+
+The options "--stdin" and "--input-file" process their own prefixes based on
+the delimiter (which can be specified by the "--delimiter" option). For each
+line, they find the last occurrence of the delimiter and consider everything
+before (delimiter included) as the prefix and everything after (delimiter
+excluded) the smiles. This way, a smiles specific prefix can be used. To not
+use such prefix, just make sure the delimiter doesn't happen on the file or
+stdin.
+
+If both the command line "--prefix" option and the smiles specific prefixes
+on stdin and input file are used, they are concatenated: first the command
+line option, then the smiles specific one.
+
+If "--header" is true, the "--prefix" option will add its contents before
+the header as well
+
+Using the options "--stdin" or "--input-file" disables the header, even if
+its flag was passed.
+
+If no input option is used (no "--input-file" nor "--stdin" nor smiles
+passed as arguments) stdin is used.
+
+
+Input processing order:
 
 Input smiles passed as arguments by command line are always processed
 first. To use the other input methods, their respective flags are
 necessary.
 
-If both - (stdin) and -i (--input-file) are used, the input file is
-processed first."""
+If both - (stdin) and -i (--input-file) are used, the input file has its
+contents read first. After both have been read, they are processed together.
 
-    only_smiles = False
-    use_stdin = False
-    use_stdout = False
-    header = False
-    csv = False
+Empty lines are ignored."""
+    
+    if exit_code == 0:
+        print(usage)
+    else:
+        print(usage, file=stderr)
 
-    input_file = None
+    exit(exit_code)
 
-    args_raw = deque(argv[1:])
-    args = deque([])
+
+def is_param_next(arg, i):
+    if i < len(arg) - 1:
+        print('Options with parameters must be immediately followed by their parameters.', file=stderr)
+        exit(1)
+
+
+def opt_use_stdin(boolean):
+    global use_stdin
+    use_stdin = boolean
+
+
+def opt_no_stdout(boolean):
+    global use_stdout
+    use_stdout = boolean
+
+
+def opt_append(boolean):
+    global append
+    append = boolean
+
+
+def opt_force(boolean):
+    global force
+    force = boolean
+
+
+def opt_input_file(arg='', i=0):
+    global args_raw
+    global input_file
+    
+    if arg:
+        is_param_next(arg, i)
+
+    if args_raw:
+        ifile = args_raw.popleft()
+        if isfile(ifile):
+            input_file = ifile
+        else:
+            print(f'File {ifile} does not exist. Ignoring option.', file=stderr)
+    else:
+        print(f'Argument must be followed by a filename.', file=stderr)
+        exit(1)
+
+
+def opt_output_file(arg='', i=0):
+    global args_raw
+    global output_file
+    global append
+    global force
+    
+    if arg:
+        is_param_next(arg, i)
+
+    if args_raw:
+        ifile = args_raw.popleft()
+        if not isfile(ifile) or append or force:
+            output_file = ifile
+        else:
+            print(f'File {ifile} already exists. To overwrite it, use the -f option too. To append to it, use the -a option.', file=stderr)
+            exit(1)
+    else:
+        print(f'Argument must be followed by a filename.', file=stderr)
+        exit(1)
+
+
+def opt_arg_prefix(arg='', i=0):
+    global args_raw
+    global arg_prefix
+
+    if arg:
+        is_param_next(arg, i)
+
+    if args_raw:
+        arg_prefix = f"{arg_prefix}{args_raw.popleft()}"
+    else:
+        print(f'Argument must be followed by a filename.', file=stderr)
+        exit(1)
+
+
+def opt_delimiter(arg='', i=0):
+    global args_raw
+    global delimiter
+
+    if arg:
+        is_param_next(arg, i)
+
+    if args_raw:
+        delimiter = args_raw.popleft()
+    else:
+        print(f'Argument must be followed by a filename', file=stderr)
+        exit(1)
+
+
+def opt_header(boolean):
+    global header
+    header = boolean
+
+
+def opt_csv(boolean):
+    global csv
+    csv = boolean
+
+
+def cli():
+
+    global use_stdin
+    global use_stdout
+    global header
+    global csv
+    global input_file
+    global output_file
+    global arg_prefix
+    global delimiter
+
+    global args_raw
+
     smiles_list = ''
-
+    arg_smiles = []
+    smiles = []
+    
     while args_raw:
         arg = args_raw.popleft()
         if arg.startswith('--'):
             if arg == '--help':
-                print(usage)
-                exit(0)
-            elif arg == '--smiles-only':
-                only_smiles = True
+                help(0)
             elif arg == '--stdin':
-                use_stdin = True
-            elif arg == '--stdout':
-                use_stdout = True
+                opt_use_stdin(True)
+            elif arg == '--no-stdout':
+                opt_no_stdout(False)
+            elif arg == '--append':
+                opt_append(True)
+            elif arg == '--force':
+                opt_force(True)
             elif arg == '--input-file':
-                if args_raw:
-                    ifile = args_raw.popleft()
-                    if isfile(ifile):
-                        input_file = ifile
-                    else:
-                        print(f'File {ifile} does not exist. Ignoring option.')
-                else:
-                    print(f'Argument {arg} must be followed by a filename.')
-                    exit(1)
+                opt_input_file()
+            elif arg == '--output-file':
+                opt_output_file()
+            elif arg == '--prefix':
+                opt_arg_prefix()
+            elif arg == '--delimiter':
+                opt_delimiter()
             elif arg == '--header':
-                header = True
+                opt_header(True)
             elif arg == '--csv':
-                csv = True
+                opt_csv(True)
             else:
-                print(f"Unknown option: {arg}\n")
-                print(usage)
-                exit(1)
+                print(f"Unknown option: {arg}\n", file=stderr)
+                help(1)
         elif arg.startswith('-'):
             if arg == '-':
-
-                use_stdin = True
+                opt_use_stdin(True)
             else:
                 arg = arg[1:]
                 for i in range(len(arg)):
                     if arg[i] == 'h':
-                        print(usage)
-                        exit(0)
-                    elif arg[i] == 's':
-                        only_smiles = True
-                    elif arg[i] == 'O':
-                        use_stdout = True
+                        help(0)
+                    elif arg[i] == 'N':
+                        opt_no_stdout(False)
+                    elif arg[i] == 'a':
+                        opt_append(True)
+                    elif arg[i] == 'f':
+                        opt_force(True)
                     elif arg[i] == 'i':
-                        if i >= len(arg):
-                            print('Parametrized options must be immediately followed by their parameters.')
-                            exit(1)
-
-                        if args_raw:
-                            ifile = args_raw.popleft()
-                            if isfile(ifile):
-                                input_file = ifile
-                            else:
-                                print(f'File {ifile} does not exist. Ignoring option.')
-                        else:
-                            print(f'Argument {arg} must be followed by a filename.')
-                            exit(1)
+                        opt_input_file(arg, i)
+                    elif arg[i] == 'o':
+                        opt_output_file(arg, i)
+                    elif arg[i] == 'p':
+                        opt_arg_prefix(arg, i)
+                    elif arg[i] == 'd':
+                        opt_delimiter(arg, i)
                     elif arg[i] == 'H':
-                        header = True
+                        opt_header(True)
                     elif arg[i] == 'c':
-                        csv = True
+                        opt_csv(True)
                     else:
-                        print(f'Unknown option: {arg}\n')
-                        print(usage)
-                        exit(1)
+                        print(f'Unknown option: {arg}\n', file=stderr)
+                        help(1)
         else:
-            args.append(arg)
+            arg_smiles.append(arg)
+    
+    if not input_file and len(arg_smiles) == 0:
+        opt_use_stdin(True)
 
-    if not only_smiles and not use_stdout and input_file is None and len(args) % 2 == 1:
-        print("Error: You must use pairs of (smile filename) or use the -s (--smiles-only) or the -O (--stdout) "
-              " or the -i (--input-file <file>) options.\n")
-        print(usage)
-        exit(1)
-
-    smiles = []
-
-    while args:
-        arg = args.popleft()
-        if only_smiles or use_stdout:
-            smiles.append(arg)
-        elif args:
-            smiles.append((arg, args.popleft()))
+    if input_file or use_stdin:
+        prefix_smi = []
 
     if input_file:
-        smiles_list = ""
         with open(input_file, 'r') as ifile:
-            if only_smiles or use_stdout:
-                for line in ifile.read().splitlines():
+            for line in ifile.read().splitlines():
+                if not line:
+                    continue
+                
+                deli = line.rfind(delimiter)
+                if deli == -1:
                     smiles.append(line)
-
-            else:
-                for line in ifile.read().splitlines():
-                    line = line.split(' ')
-                    print(line)
-                    print(f'smiles: {line[0]}, file: {line[1]}')
-                    smiles.append((line[0], line[1]))
-    for smi in smiles:
-        smiles_list += f"{smi}\r\n"
+                    prefix_smi.append([])
+                else:
+                    del_end = deli + len(delimiter)
+                    smiles.append(line[del_end:])
+                    prefix_smi.append(line[:del_end])
 
     if use_stdin:
-        if only_smiles or use_stdout:
-            for line in stdin:
-                line = line.rstrip()
+        for line in stdin:
+            line = line.rstrip()
+            if not line:
+                continue
+            
+            deli = line.rfind(delimiter)
+            if deli == -1:
                 smiles.append(line)
-        else:
-            for line in stdin:
-                line = line.rstrip().split('\t')
-                smiles.append((line[0], line[1]))
+                prefix_smi.append('')
+            else:
+                del_end = deli + len(delimiter)
+                smiles.append(line[del_end:])
+                prefix_smi.append(line[:del_end])
+    
+    if input_file or use_stdin:
+        header = False
 
-    else:
-        if only_smiles or use_stdout:
-            download_admet(smiles_list, to_stdout=use_stdout, header=header, csv=csv)
-        else:
-            for smi in smiles:
-                print(f'smiles: {smi[0]} , filename: {smi[1]}')
-                download_admet(smi[0], filename=smi[1], header=header, csv=csv)
+    if arg_smiles:
+        arg_append = append
+        for i in range(1, ceil(len(arg_smiles) / 500) + 1):
+            if i > 1:
+                arg_append = True
+
+            download_admet(smiles=arg_smiles[(i - 1) * 500 : i * 500],
+                           append=arg_append,
+                           filename=output_file,
+                           to_stdout=use_stdout,
+                           header=header,
+                           csv=csv,
+                           arg_prefix=arg_prefix)
+    
+    if input_file or use_stdin:
+        arg_append = append
+        for i in range(1, ceil(len(smiles) / 500) + 1):
+            if i > 1:
+                arg_append = True
+
+            download_admet(smiles=smiles[(i - 1) * 500 : i * 500],
+                           append=arg_append,
+                           filename=output_file,
+                           to_stdout=use_stdout,
+                           header=header,
+                           csv=csv,
+                           arg_prefix=arg_prefix,
+                           prefix_list=prefix_smi[(i - 1) * 500 : i * 500])
 
 
 if __name__ == '__main__':
+    
+    use_stdin = False
+    use_stdout = True
+    header = False
+    csv = False
+    append = False
+    force = False
+    input_file = None
+    output_file = None
+    arg_prefix = ""
+    delimiter = "\t"
+    
+    args_raw = deque(argv[1:])
+
     cli()
+

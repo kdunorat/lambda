@@ -1,0 +1,3 @@
+alpha_endorphin	cid16138308	CC(C)CC(C(=O)NC(C(C)C)C(=O)NC(C(C)O)C(=O)O)NC(=O)C1CCCN1C(=O)C(C(C)O)NC(=O)C(CCC(=O)N)NC(=O)C(CO)NC(=O)C(CCCCN)NC(=O)C(CCC(=O)O)NC(=O)C(CO)NC(=O)C(C(C)O)NC(=O)C(CCSC)NC(=O)C(CC2=CC=CC=C2)NC(=O)CNC(=O)CNC(=O)C(CC3=CC=C(C=C3)O)N
+glycine_L_seryl_L_histidyl_L_leucyl_L_valyl_L_alpha_glutamyl_L_alanyl_L_leucyl_L_alanyl_L_leucyl_L_valyl_L_alanylglycyl_L_alpha_glutamyl_L_arginyl	cid9812645	CC(C)CC(C(=O)NC(C)C(=O)NC(CC(C)C)C(=O)NC(C(C)C)C(=O)NC(C)C(=O)NCC(=O)NC(CCC(=O)O)C(=O)NC(CCCN=C(N)N)C(=O)NCC(=O)O)NC(=O)C(C)NC(=O)C(CCC(=O)O)NC(=O)C(C(C)C)NC(=O)C(CC(C)C)NC(=O)C(CC1=CN=CN1)NC(=O)C(CO)N
+

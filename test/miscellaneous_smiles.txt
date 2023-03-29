@@ -1,0 +1,23 @@
+molnupiravir	cid145996610	CC(C)C(=O)OCC1C(C(C(O1)N2C=CC(=NC2=O)NO)O)O
+aspirin	cid2244	CC(=O)OC1=CC=CC=C1C(=O)O
+caffeine	cid2519	CN1C=NC2=C1C(=O)N(C(=O)N2C)C
+chloroquine	cid2719	CCN(CC)CCCC(C)NC1=C2C=CC(=CC2=NC=C1)Cl
+ritonavir	cid392622	CC(C)C1=NC(=CS1)CN(C)C(=O)NC(C(C)C)C(=O)NC(CC2=CC=CC=C2)CC(C(CC3=CC=CC=C3)NC(=O)OCC4=CN=CS4)O
+resveratrol	cid445154	C1=CC(=CC=C1C=CC2=CC(=CC(=C2)O)O)O
+alpha_endorphin	cid16138308	CC(C)CC(C(=O)NC(C(C)C)C(=O)NC(C(C)O)C(=O)O)NC(=O)C1CCCN1C(=O)C(C(C)O)NC(=O)C(CCC(=O)N)NC(=O)C(CO)NC(=O)C(CCCCN)NC(=O)C(CCC(=O)O)NC(=O)C(CO)NC(=O)C(C(C)O)NC(=O)C(CCSC)NC(=O)C(CC2=CC=CC=C2)NC(=O)CNC(=O)CNC(=O)C(CC3=CC=C(C=C3)O)N
+L_glumatic_acid	cid33032	C(CC(=O)O)C(C(=O)O)N
+gaba	cid119	C(CC(=O)O)CN
+fluvoxamine	cid5324346	COCCCCC(=NOCCN)C1=CC=C(C=C1)C(F)(F)F
+trans_chalcone	cid637760	C1=CC=C(C=C1)C=CC(=O)C2=CC=CC=C2
+bad_smiles	cidnonexistent	hellomyfriend.Howwasyourday?
+epinephrine	cid5816	CNCC(C1=CC(=C(C=C1)O)O)O
+D_glucose	cid5793	C(C1C(C(C(C(O1)O)O)O)O)O
+UDP_glucose	cid8629	C1=CN(C(=O)NC1=O)C2C(C(C(O2)COP(=O)(O)OP(=O)(O)OC3C(C(C(C(O3)CO)O)O)O)O)O
+serotonin	cid5202	C1=CC2=C(C=C1O)C(=CN2)CCN
+guanine	cid135398634	C1=NC2=C(N1)C(=O)NC(=N2)N
+phosphoribosyl_ATP	cid11050836	C1=NC2=C(N1C3C(C(C(O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N=CN(C2=N)C4C(C(C(O4)COP(=O)(O)O)O)O
+glycine_L_seryl_L_histidyl_L_leucyl_L_valyl_L_alpha_glutamyl_L_alanyl_L_leucyl_L_alanyl_L_leucyl_L_valyl_L_alanylglycyl_L_alpha_glutamyl_L_arginyl	cid9812645	CC(C)CC(C(=O)NC(C)C(=O)NC(CC(C)C)C(=O)NC(C(C)C)C(=O)NC(C)C(=O)NCC(=O)NC(CCC(=O)O)C(=O)NC(CCCN=C(N)N)C(=O)NCC(=O)O)NC(=O)C(C)NC(=O)C(CCC(=O)O)NC(=O)C(C(C)C)NC(=O)C(CC(C)C)NC(=O)C(CC1=CN=CN1)NC(=O)C(CO)N
+2_amino_9_methyl_1_7_dihydropurin_9_ium_6_one_trichloroplatinum	cid135698681	C[N+]1=CNC2=C1N=C(NC2=O)N.Cl[Pt-](Cl)Cl
+adenine	cid190	C1=NC2=NC=NC(=C2N1)N
+uracil	cid1174	C1=CNC(=O)NC1=O
+
