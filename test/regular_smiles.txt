@@ -1,0 +1,7 @@
+molnupiravir	cid145996610	CC(C)C(=O)OCC1C(C(C(O1)N2C=CC(=NC2=O)NO)O)O
+aspirin	cid2244	CC(=O)OC1=CC=CC=C1C(=O)O
+caffeine	cid2519	CN1C=NC2=C1C(=O)N(C(=O)N2C)C
+chloroquine	cid2719	CCN(CC)CCCC(C)NC1=C2C=CC(=CC2=NC=C1)Cl
+fluvoxamine	cid5324346	COCCCCC(=NOCCN)C1=CC=C(C=C1)C(F)(F)F
+trans_chalcone	cid637760	C1=CC=C(C=C1)C=CC(=O)C2=CC=CC=C2
+2_amino_9_methyl_1_7_dihydropurin_9_ium_6_one_trichloroplatinum	cid135698681	C[N+]1=CNC2=C1N=C(NC2=O)N.Cl[Pt-](Cl)Cl

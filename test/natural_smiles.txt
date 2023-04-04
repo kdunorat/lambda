@@ -1,0 +1,11 @@
+L_glumatic_acid	cid33032	C(CC(=O)O)C(C(=O)O)N
+gaba	cid119	C(CC(=O)O)CN
+epinephrine	cid5816	CNCC(C1=CC(=C(C=C1)O)O)O
+D_glucose	cid5793	C(C1C(C(C(C(O1)O)O)O)O)O
+UDP_glucose	cid8629	C1=CN(C(=O)NC1=O)C2C(C(C(O2)COP(=O)(O)OP(=O)(O)OC3C(C(C(C(O3)CO)O)O)O)O)O
+serotonin	cid5202	C1=CC2=C(C=C1O)C(=CN2)CCN
+guanine	cid135398634	C1=NC2=C(N1)C(=O)NC(=N2)N
+phosphoribosyl_ATP	cid11050836	C1=NC2=C(N1C3C(C(C(O3)COP(=O)(O)OP(=O)(O)OP(=O)(O)O)O)O)N=CN(C2=N)C4C(C(C(O4)COP(=O)(O)O)O)O
+adenine	cid190	C1=NC2=NC=NC(=C2N1)N
+uracil	cid1174	C1=CNC(=O)NC1=O
+
