@@ -291,7 +291,7 @@ def cli():
                 deli = line.rfind(delimiter)
                 if deli == -1:
                     smiles.append(line)
-                    prefix_smi.append([])
+                    prefix_smi.append('')
                 else:
                     del_end = deli + len(delimiter)
                     smiles.append(line[del_end:])
