@@ -1,4 +1,5 @@
 bad_smiles	cidnonexistent	hellomyfriend.Howwasyourday?
 
 bad_smiles	cidnotreally	Haveagoodafternoon!
+invalid_smiles	ZINCchemicallyinvalid	CCOOOOSOSCCl=C=O
 
