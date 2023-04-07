@@ -24,7 +24,7 @@ def get_csv(smiles):
         soup = BeautifulSoup(r.content, "html.parser")
         tags = soup.find_all("li", class_="list-group-item text-center")
         for invalid in tags:
-            invalids.append(invalid)
+            invalids.append(invalid.text)
         for a in soup.find_all('a', href=True):
             if '/tmp' in a['href']:
                 path = a['href']
@@ -46,10 +46,14 @@ def download_admet(smiles, append=False, filename=None, to_stdout=False, header=
 
         header = False
 
-    path, admet = get_csv(''.join(['\r\n'.join(smiles), '\r\n']))
+    path, admet, invalids = get_csv(''.join(['\r\n'.join(smiles), '\r\n']))
     if admet == 0:
         print("Smiles could not be found or don't exist", file=stderr)
     else:
+        if len(invalids) != 0:
+            print(f"You submitted {len(invalids)} invalid smiles:")
+            for invalid in invalids:
+                print(f"Invalid smiles: {invalid}")
         text_list = requests.get(f"https://admetmesh.scbdd.com{path}").text.split('\n')
 
         if csv:
@@ -113,8 +117,3 @@ def download_admet(smiles, append=False, filename=None, to_stdout=False, header=
 
         if not to_stdout:
             print('Download complete')
-
-
-if __name__ == '__main__':
-    smiles = ["CC(=O)OC1=CC=CC=C1C(=O)\r\nOOpaaaaaa\r\nAIPAPAI"]
-    get_csv(smiles)
