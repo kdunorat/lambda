@@ -43,7 +43,13 @@ Options:
                                       admetlab2_script_result_randomnumber , 
                                       where the randomnumber is anywhere from
                                       1 to 1000000000000000)
+        -e, --error-file <file>     : Output errors with processing the smiles
+                                      on the site to this file. The named
+                                      passed will have the ".err" sufix added
+                                      to it. (Default: "admetlab_errors")
+        
         -N, --no-stdout             : Disable printing to stdout.
+        -E, --no-smiles-error       : Don't print invalid smiles to stderr.
         -i, --input-file <file>     : File from which to take the input smiles.
 
         -h, --help                  : Prints this message.
@@ -76,7 +82,6 @@ its flag was passed.
 If no input option is used (no "--input-file" nor "--stdin" nor smiles
 passed as arguments) stdin is used.
 
-
 Input processing order:
 
 Input smiles passed as arguments by command line are always processed
@@ -86,7 +91,17 @@ necessary.
 If both - (stdin) and -i (--input-file) are used, the input file has its
 contents read first. After both have been read, they are processed together.
 
-Empty lines are ignored."""
+Empty lines are ignored.
+
+Smiles with errors:
+
+If any smiles give errors when submitted, they are ignored on the program
+regular output.
+
+By default, a message is printed to stderr with the error smiles.
+
+If "--no-smiles-error" is used and no error file is specified, it uses the
+default error filename."""
     
     if exit_code == 0:
         print(usage)
@@ -102,6 +117,17 @@ def is_param_next(arg, i):
         exit(1)
 
 
+def counter_err_file(ifile=''):
+    if not ifile:
+        ifile = f'admetlab_errors'
+
+    counter = 1
+    while isfile(f"{ifile}_{counter}.err"):
+        counter += 1
+    return f"{ifile}_{counter}.err"
+
+
+
 def opt_use_stdin(boolean):
     global use_stdin
     use_stdin = boolean
@@ -110,6 +136,11 @@ def opt_use_stdin(boolean):
 def opt_no_stdout(boolean):
     global use_stdout
     use_stdout = boolean
+
+
+def opt_no_smiles_err(boolean):
+    global use_smiles_err
+    use_smiles_err = boolean
 
 
 def opt_append(boolean):
@@ -161,6 +192,24 @@ def opt_output_file(arg='', i=0):
         exit(1)
 
 
+def opt_err_file(arg='', i=0):
+    global args_raw
+    global err_file
+
+    if arg:
+        is_param_next(arg, i)
+
+    if args_raw:
+        ifile = args_raw.popleft()
+        if not isfile(f"{ifile}.err"):
+            err_file = f"{ifile}.err"
+        else:
+            err_file = counter_err_file(ifile)
+    else:
+        print(f'Argument must be followed by a filename.', file=stderr)
+        exit(1)
+
+
 def opt_arg_prefix(arg='', i=0):
     global args_raw
     global arg_prefix
@@ -203,10 +252,12 @@ def cli():
 
     global use_stdin
     global use_stdout
+    global use_smiles_err
     global header
     global csv
     global input_file
     global output_file
+    global err_file
     global arg_prefix
     global delimiter
 
@@ -225,6 +276,8 @@ def cli():
                 opt_use_stdin(True)
             elif arg == '--no-stdout':
                 opt_no_stdout(False)
+            elif arg == '--no-smiles-error':
+                opt_no_smiles_err(False)
             elif arg == '--append':
                 opt_append(True)
             elif arg == '--force':
@@ -233,6 +286,8 @@ def cli():
                 opt_input_file()
             elif arg == '--output-file':
                 opt_output_file()
+            elif arg == '--error-file':
+                opt_err_file()
             elif arg == '--prefix':
                 opt_arg_prefix()
             elif arg == '--delimiter':
@@ -254,6 +309,8 @@ def cli():
                         help(0)
                     elif arg[i] == 'N':
                         opt_no_stdout(False)
+                    elif arg[i] == 'E':
+                        opt_no_smiles_err(False)
                     elif arg[i] == 'a':
                         opt_append(True)
                     elif arg[i] == 'f':
@@ -262,6 +319,8 @@ def cli():
                         opt_input_file(arg, i)
                     elif arg[i] == 'o':
                         opt_output_file(arg, i)
+                    elif arg[i] == 'e':
+                        opt_err_file(arg, i)
                     elif arg[i] == 'p':
                         opt_arg_prefix(arg, i)
                     elif arg[i] == 'd':
@@ -315,6 +374,9 @@ def cli():
     if input_file or use_stdin:
         header = False
 
+    if not err_file and not use_smiles_err:
+        err_file = counter_err_file()
+
     if arg_smiles:
         arg_append = append
         for i in range(1, ceil(len(arg_smiles) / 500) + 1):
@@ -324,6 +386,8 @@ def cli():
             download_admet(smiles=arg_smiles[(i - 1) * 500 : i * 500],
                            append=arg_append,
                            filename=output_file,
+                           err_file=err_file,
+                           smiles_err=use_smiles_err,
                            to_stdout=use_stdout,
                            header=header,
                            csv=csv,
@@ -338,6 +402,8 @@ def cli():
             download_admet(smiles=smiles[(i - 1) * 500 : i * 500],
                            append=arg_append,
                            filename=output_file,
+                           err_file=err_file,
+                           smiles_err=use_smiles_err,
                            to_stdout=use_stdout,
                            header=header,
                            csv=csv,
@@ -349,12 +415,14 @@ if __name__ == '__main__':
     
     use_stdin = False
     use_stdout = True
+    use_smiles_err = True
     header = False
     csv = False
     append = False
     force = False
     input_file = None
     output_file = None
+    err_file = None
     arg_prefix = ""
     delimiter = "\t"
     

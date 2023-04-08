@@ -35,10 +35,11 @@ def get_csv(smiles):
         return 0
 
 
-def download_admet(smiles, append=False, filename=None, to_stdout=False, header=False, csv=False, arg_prefix='',
-                   prefix_list=None):
+def download_admet(smiles, append=False, filename=None, err_file=None, smiles_err=True, to_stdout=False, header=False, csv=False,
+                   arg_prefix='', prefix_list=None):
     """Faz o download da análise admet a partir do nome obtido de acordo com o smiles e cria com filename ou imprime
     no stdout"""
+
     if prefix_list:
         if len(prefix_list) != len(smiles):
             print('Prefix list and Smiles List have different lengths. They must be the same', file=stderr)
@@ -51,9 +52,31 @@ def download_admet(smiles, append=False, filename=None, to_stdout=False, header=
         print("Smiles could not be found or don't exist", file=stderr)
     else:
         if len(invalids) != 0:
-            print(f"You submitted {len(invalids)} invalid smiles:")
+            err_msg = f"You submitted {len(invalids)} lines with invalid smiles:\n"
+
             for invalid in invalids:
-                print(f"Invalid smiles: {invalid}")
+                i = 0
+                # Find the corresponding line on prefix_list
+                while i < len(prefix_list):
+                    if invalid == smiles[i]:
+                        break
+                    i += 1
+
+                if len(prefix_list) != 0:
+                    err_msg = f"{err_msg}{prefix_list[i]}{invalid}\n"
+                    del prefix_list[i]
+                else:
+                    err_msg = f"{err_msg}{invalid}\n"
+                
+                del smiles[i]
+
+            if smiles_err:
+                print(err_msg, file=stderr)
+
+            if err_file:
+                with open(err_file, 'w') as err:
+                    err.write(err_msg)
+
         text_list = requests.get(f"https://admetmesh.scbdd.com{path}").text.split('\n')
 
         if csv:
