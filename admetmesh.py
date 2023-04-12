@@ -22,6 +22,7 @@ def get_csv(smiles):
 
         r = client.post(url, data=payload, headers=dict(Referer=url))
         soup = BeautifulSoup(r.content, "html.parser")
+        all_invalid = soup.find_all(class_="alert alert-warning")
         tags = soup.find_all("li", class_="list-group-item text-center")
         for invalid in tags:
             invalids.append(invalid.text)
@@ -30,7 +31,7 @@ def get_csv(smiles):
                 path = a['href']
         csv = path.split('/')
         csv = csv[-1]
-        return path, csv, invalids
+        return path, csv, invalids, all_invalid
     except UnboundLocalError:
         return 0
 
@@ -47,8 +48,9 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
 
         header = False
 
-    path, admet, invalids = get_csv(''.join(['\r\n'.join(smiles), '\r\n']))
-    if admet == 0:
+    path, admet, invalids, all_invalid = get_csv(''.join(['\r\n'.join(smiles), '\r\n']))
+    
+    if admet == 0 or all_invalid:
         print("Smiles could not be found or don't exist", file=stderr)
     else:
         if len(invalids) != 0:
@@ -140,3 +142,9 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
 
         if not to_stdout:
             print('Download complete')
+
+
+if __name__ == '__main__':
+    smile = "CC(=O)OC1=CC=CC=C1C(=O)O"
+    smiles = ["opppaaaa\r\neitamenino\r\nalalalalaalalala"]
+    get_csv(smiles)

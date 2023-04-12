@@ -102,7 +102,7 @@ By default, a message is printed to stderr with the error smiles.
 
 If "--no-smiles-error" is used and no error file is specified, it uses the
 default error filename."""
-    
+
     if exit_code == 0:
         print(usage)
     else:
@@ -125,7 +125,6 @@ def counter_err_file(ifile=''):
     while isfile(f"{ifile}_{counter}.err"):
         counter += 1
     return f"{ifile}_{counter}.err"
-
 
 
 def opt_use_stdin(boolean):
@@ -156,7 +155,7 @@ def opt_force(boolean):
 def opt_input_file(arg='', i=0):
     global args_raw
     global input_file
-    
+
     if arg:
         is_param_next(arg, i)
 
@@ -176,7 +175,7 @@ def opt_output_file(arg='', i=0):
     global output_file
     global append
     global force
-    
+
     if arg:
         is_param_next(arg, i)
 
@@ -185,7 +184,9 @@ def opt_output_file(arg='', i=0):
         if not isfile(ifile) or append or force:
             output_file = ifile
         else:
-            print(f'File {ifile} already exists. To overwrite it, use the -f option too. To append to it, use the -a option.', file=stderr)
+            print(
+                f'File {ifile} already exists. To overwrite it, use the -f option too. To append to it, use the -a option.',
+                file=stderr)
             exit(1)
     else:
         print(f'Argument must be followed by a filename.', file=stderr)
@@ -249,7 +250,6 @@ def opt_csv(boolean):
 
 
 def cli():
-
     global use_stdin
     global use_stdout
     global use_smiles_err
@@ -266,7 +266,7 @@ def cli():
     smiles_list = ''
     arg_smiles = []
     smiles = []
-    
+
     while args_raw:
         arg = args_raw.popleft()
         if arg.startswith('--'):
@@ -334,7 +334,7 @@ def cli():
                         help(1)
         else:
             arg_smiles.append(arg)
-    
+
     if not input_file and len(arg_smiles) == 0:
         opt_use_stdin(True)
 
@@ -346,7 +346,7 @@ def cli():
             for line in ifile.read().splitlines():
                 if not line:
                     continue
-                
+
                 deli = line.rfind(delimiter)
                 if deli == -1:
                     smiles.append(line)
@@ -361,7 +361,7 @@ def cli():
             line = line.rstrip()
             if not line:
                 continue
-            
+
             deli = line.rfind(delimiter)
             if deli == -1:
                 smiles.append(line)
@@ -370,7 +370,7 @@ def cli():
                 del_end = deli + len(delimiter)
                 smiles.append(line[del_end:])
                 prefix_smi.append(line[:del_end])
-    
+
     if input_file or use_stdin:
         header = False
 
@@ -383,7 +383,7 @@ def cli():
             if i > 1:
                 arg_append = True
 
-            download_admet(smiles=arg_smiles[(i - 1) * 500 : i * 500],
+            download_admet(smiles=arg_smiles[(i - 1) * 500: i * 500],
                            append=arg_append,
                            filename=output_file,
                            err_file=err_file,
@@ -392,14 +392,14 @@ def cli():
                            header=header,
                            csv=csv,
                            arg_prefix=arg_prefix)
-    
+
     if input_file or use_stdin:
         arg_append = append
         for i in range(1, ceil(len(smiles) / 500) + 1):
             if i > 1:
                 arg_append = True
 
-            download_admet(smiles=smiles[(i - 1) * 500 : i * 500],
+            download_admet(smiles=smiles[(i - 1) * 500: i * 500],
                            append=arg_append,
                            filename=output_file,
                            err_file=err_file,
@@ -408,11 +408,10 @@ def cli():
                            header=header,
                            csv=csv,
                            arg_prefix=arg_prefix,
-                           prefix_list=prefix_smi[(i - 1) * 500 : i * 500])
+                           prefix_list=prefix_smi[(i - 1) * 500: i * 500])
 
 
 if __name__ == '__main__':
-    
     use_stdin = False
     use_stdout = True
     use_smiles_err = True
@@ -425,7 +424,7 @@ if __name__ == '__main__':
     err_file = None
     arg_prefix = ""
     delimiter = "\t"
-    
+
     args_raw = deque(argv[1:])
 
     cli()
