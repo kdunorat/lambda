@@ -36,8 +36,8 @@ def get_csv(smiles):
         return 0
 
 
-def download_admet(smiles, append=False, filename=None, err_file=None, smiles_err=True, to_stdout=False, header=False, csv=False,
-                   arg_prefix='', prefix_list=None):
+def download_admet(smiles, append=False, filename=None, err_file=None, smiles_err=True, to_stdout=False, header=False,
+                   csv=False, arg_prefix='', prefix_list=None):
     """Faz o download da análise admet a partir do nome obtido de acordo com o smiles e cria com filename ou imprime
     no stdout"""
 
@@ -142,9 +142,3 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
 
         if not to_stdout:
             print('Download complete')
-
-
-if __name__ == '__main__':
-    smile = "CC(=O)OC1=CC=CC=C1C(=O)O"
-    smiles = ["opppaaaa\r\neitamenino\r\nalalalalaalalala"]
-    get_csv(smiles)

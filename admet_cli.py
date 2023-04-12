@@ -185,7 +185,8 @@ def opt_output_file(arg='', i=0):
             output_file = ifile
         else:
             print(
-                f'File {ifile} already exists. To overwrite it, use the -f option too. To append to it, use the -a option.',
+                f'File {ifile} already exists. To overwrite it, use the -f option too.'
+                'To append to it, use the -a option.',
                 file=stderr)
             exit(1)
     else:
