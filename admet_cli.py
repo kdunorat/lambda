@@ -101,7 +101,10 @@ regular output.
 By default, a message is printed to stderr with the error smiles.
 
 If "--no-smiles-error" is used and no error file is specified, it uses the
-default error filename."""
+default error filename.
+
+If a error file that already exists is used, the contents of new error
+smiles messages will be appended to the err file."""
 
     if exit_code == 0:
         print(usage)
