@@ -8,42 +8,38 @@ from math import ceil
 
 def get_csv(smiles):
     """Obtém o nome do arquivo csv gerado pelo smiles"""
-    try:
-        path = ''
-        invalids = []
-        url = f"https://admetmesh.scbdd.com/service/screening/cal"
-        client = requests.session()
-        client.get(url=url, timeout=10)
-        csrftoken = client.cookies["csrftoken"]
-        payload = {
-            "csrfmiddlewaretoken": csrftoken,
-            "smiles-list": smiles,
-            "method": "2"
-        }
+    path = ''
+    invalids = []
+    url = f"https://admetmesh.scbdd.com/service/screening/cal"
+    client = requests.session()
+    client.get(url=url, timeout=10)
+    csrftoken = client.cookies["csrftoken"]
+    payload = {
+        "csrfmiddlewaretoken": csrftoken,
+        "smiles-list": smiles,
+        "method": "2"
+    }
 
-        r = client.post(url, data=payload, headers=dict(Referer=url))
-        soup = BeautifulSoup(r.content, "html.parser")
-        
-        # Checks if the site considered all smiles invalid and, if so, raises an TypeError
-        if soup.find_all(class_="alert alert-warning"):
-            raise TypeError('All smiles are invalid')
-            
+    r = client.post(url, data=payload, headers=dict(Referer=url))
+    soup = BeautifulSoup(r.content, "html.parser")
 
-        tags = soup.find_all("li", class_="list-group-item text-center")
-        for invalid in tags:
-            invalids.append(invalid.text)
-        for a in soup.find_all('a', href=True):
-            if '/tmp' in a['href']:
-                path = a['href']
-        csv = path.split('/')
-        csv = csv[-1]
-        
-        if csv == 0:
-            raise TypeError('No csv returned by the site')
+    # Checks if the site considered all smiles invalid and, if so, raises an TypeError
+    if soup.find_all(class_="alert alert-warning"):
+        raise TypeError('All smiles are invalid')
 
-        return path, csv, invalids
-    except UnboundLocalError:
-        return 0
+    tags = soup.find_all("li", class_="list-group-item text-center")
+    for invalid in tags:
+        invalids.append(invalid.text)
+    for a in soup.find_all('a', href=True):
+        if '/tmp' in a['href']:
+            path = a['href']
+    csv = path.split('/')
+    csv = csv[-1]
+
+    if csv == 0:
+        raise TypeError('No csv returned by the site')
+
+    return path, csv, invalids
 
 
 def download_admet(smiles, append=False, filename=None, err_file=None, smiles_err=True, to_stdout=False, header=False,
@@ -66,11 +62,11 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
         mode = 'a'
     else:
         mode = 'w'
-   
+
     for sub_c in range(1, ceil(len(smiles) / 500) + 1):
         if sub_c > 1:
             mode = 'a'
-        
+
         smi = smiles[(sub_c - 1) * 500: sub_c * 500]
         if prefix_list:
             pre_list = prefix_list[(sub_c - 1) * 500: sub_c * 500]
@@ -109,7 +105,7 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
                     del pre_list[i]
                 else:
                     err_msg = f"{err_msg}{invalid}\n"
-                
+
                 del smi[i]
 
             if smiles_err:
@@ -120,7 +116,7 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
                     err.write(err_msg)
 
         content = requests.get(f"https://admetmesh.scbdd.com{path}").text.split('\n')
-            
+
         # Removes smiles from the results of the site. Also removes any possible empty lines.
         iterator = 1
         while iterator < len(content):
@@ -133,7 +129,7 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
                 content[iterator] = content[iterator].replace(',', '\t')
 
             iterator += 1
-            
+
         for i in range(len(content) - 1):
             if pre_list:
                 content[i + 1] = f"{arg_prefix}{pre_list[i]}{smi[i]}{delimiter}{content[i + 1]}"
@@ -165,4 +161,3 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
 
         if not to_stdout:
             print('Download complete')
-
