@@ -47,6 +47,7 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
     """Faz o download da análise admet a partir do nome obtido de acordo com o smiles e cria com filename ou imprime
     no stdout"""
 
+    global pre_list
     if prefix_list:
         if len(prefix_list) != len(smiles):
             raise ValueError('Prefix list and Smiles List have different lengths. They must be the same.')
