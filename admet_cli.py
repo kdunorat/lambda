@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 from math import ceil
 from sys import argv
@@ -40,9 +40,7 @@ Options:
         - , --stdin                 : Take input smiles from stdin. (Default:
                                       False).
         -o, --output-file <file>    : Output result to file. (Default:
-                                      admetlab2_script_result_randomnumber , 
-                                      where the randomnumber is anywhere from
-                                      1 to 1000000000000000)
+                                      admetlab2_script_result_processid).
         -e, --error-file <file>     : Output errors with processing the smiles
                                       on the site to this file. The named
                                       passed will have the ".err" sufix added
@@ -267,7 +265,6 @@ def cli():
 
     global args_raw
 
-    smiles_list = ''
     arg_smiles = []
     smiles = []
 
@@ -382,29 +379,24 @@ def cli():
         err_file = counter_err_file()
 
     if arg_smiles:
-        arg_append = append
-        for i in range(1, ceil(len(arg_smiles) / 500) + 1):
-            if i > 1:
-                arg_append = True
+        try:
+            download_admet(smiles=arg_smiles,
+                            append=append,
+                            filename=output_file,
+                            err_file=err_file,
+                            smiles_err=use_smiles_err,
+                            to_stdout=use_stdout,
+                            header=header,
+                            csv=csv,
+                            arg_prefix=arg_prefix)
+        except ValueError as error:
+            print(repr(error), file=stderr)
+            exit(1)
 
-            download_admet(smiles=arg_smiles[(i - 1) * 500: i * 500],
-                           append=arg_append,
-                           filename=output_file,
-                           err_file=err_file,
-                           smiles_err=use_smiles_err,
-                           to_stdout=use_stdout,
-                           header=header,
-                           csv=csv,
-                           arg_prefix=arg_prefix)
-
-    if input_file or use_stdin:
-        arg_append = append
-        for i in range(1, ceil(len(smiles) / 500) + 1):
-            if i > 1:
-                arg_append = True
-
-            download_admet(smiles=smiles[(i - 1) * 500: i * 500],
-                           append=arg_append,
+    if smiles:
+        try:
+            download_admet(smiles=smiles,
+                           append=append,
                            filename=output_file,
                            err_file=err_file,
                            smiles_err=use_smiles_err,
@@ -412,7 +404,10 @@ def cli():
                            header=header,
                            csv=csv,
                            arg_prefix=arg_prefix,
-                           prefix_list=prefix_smi[(i - 1) * 500: i * 500])
+                           prefix_list=prefix_smi)
+        except ValueError as error:
+            print(repr(error), file=stderr)
+            exit(1)
 
 
 if __name__ == '__main__':
@@ -432,3 +427,4 @@ if __name__ == '__main__':
     args_raw = deque(argv[1:])
 
     cli()
+
