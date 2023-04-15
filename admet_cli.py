@@ -252,7 +252,7 @@ def opt_csv(boolean):
 
 
 def cli():
-    global use_stdin
+    global use_stdin, prefix_smi
     global use_stdout
     global use_smiles_err
     global header
@@ -381,14 +381,14 @@ def cli():
     if arg_smiles:
         try:
             download_admet(smiles=arg_smiles,
-                            append=append,
-                            filename=output_file,
-                            err_file=err_file,
-                            smiles_err=use_smiles_err,
-                            to_stdout=use_stdout,
-                            header=header,
-                            csv=csv,
-                            arg_prefix=arg_prefix)
+                           append=append,
+                           filename=output_file,
+                           err_file=err_file,
+                           smiles_err=use_smiles_err,
+                           to_stdout=use_stdout,
+                           header=header,
+                           csv=csv,
+                           arg_prefix=arg_prefix)
         except ValueError as error:
             print(repr(error), file=stderr)
             exit(1)
@@ -427,4 +427,3 @@ if __name__ == '__main__':
     args_raw = deque(argv[1:])
 
     cli()
-
