@@ -36,9 +36,6 @@ def get_csv(smiles):
     csv = path.split('/')
     csv = csv[-1]
 
-    if csv == 0:
-        raise TypeError('No csv returned by the site')
-
     return path, csv, invalids
 
 
@@ -48,6 +45,8 @@ def download_admet(smiles, append=False, filename=None, err_file=None, smiles_er
     no stdout"""
 
     global pre_list
+    pre_list = []
+
     if prefix_list:
         if len(prefix_list) != len(smiles):
             raise ValueError('Prefix list and Smiles List have different lengths. They must be the same.')
