@@ -10,6 +10,7 @@ from os.path import isfile
 from admetmesh import download_admet
 
 
+# Prints the help message and exits the program with the given exit code
 def help(exit_code):
     usage = f"""Usage: {argv[0]} [options] [-o <output-file>] (smiles)...
 
@@ -40,11 +41,15 @@ Options:
         - , --stdin                 : Take input smiles from stdin. (Default:
                                       False).
         -o, --output-file <file>    : Output result to file. (Default:
-                                      admetlab2_script_result_processid).
+                                      "admetlab2_script_result_processid" ,
+                                      only applicable if no "--output-file" is
+                                      specified and "--no-stdout" is used).
         -e, --error-file <file>     : Output errors with processing the smiles
-                                      on the site to this file. The named
+                                      on the site to this file. The name
                                       passed will have the ".err" sufix added
-                                      to it. (Default: "admetlab_errors")
+                                      to it. (Default: "admetlab_errors", only
+                                      used if no "--error-file" is specified
+                                      and "--no-smiles-error" is used).
         
         -N, --no-stdout             : Disable printing to stdout.
         -E, --no-smiles-error       : Don't print invalid smiles to stderr.
@@ -112,47 +117,44 @@ smiles messages will be appended to the err file."""
     exit(exit_code)
 
 
+# Checks whether the index for the arg (which corresponds to a short parameter) corresponds to the last character
 def is_param_next(arg, i):
     if i < len(arg) - 1:
         print('Options with parameters must be immediately followed by their parameters.', file=stderr)
         exit(1)
 
 
-def counter_err_file(ifile=''):
-    if not ifile:
-        ifile = f'admetlab_errors'
-
-    counter = 1
-    while isfile(f"{ifile}_{counter}.err"):
-        counter += 1
-    return f"{ifile}_{counter}.err"
-
-
+# Changes state of use_stdin boolean variable
 def opt_use_stdin(boolean):
     global use_stdin
     use_stdin = boolean
 
 
+# Changes state of use_stdout boolean variable
 def opt_no_stdout(boolean):
     global use_stdout
     use_stdout = boolean
 
 
+# Changes state of use_smiles_err boolean variable (controls whether to print the smiles that give errors at site to stderr)
 def opt_no_smiles_err(boolean):
     global use_smiles_err
     use_smiles_err = boolean
 
 
+# Changes state of append boolean variable (controls whether to append or overwrite the output file, in case it already exists)
 def opt_append(boolean):
     global append
     append = boolean
 
 
+# Changes state of force boolean variable (if true, allows overwriting the output file, in case it already exists)
 def opt_force(boolean):
     global force
     force = boolean
 
 
+# Adds a valid file path to the input_file global variable
 def opt_input_file(arg='', i=0):
     global args_raw
     global input_file
@@ -171,6 +173,8 @@ def opt_input_file(arg='', i=0):
         exit(1)
 
 
+# Adds a file path to the input_file global variable.
+# Fails if the file already exists and neither append nor force are true.
 def opt_output_file(arg='', i=0):
     global args_raw
     global output_file
@@ -195,6 +199,7 @@ def opt_output_file(arg='', i=0):
         exit(1)
 
 
+# Adds a path to the err_file global variable
 def opt_err_file(arg='', i=0):
     global args_raw
     global err_file
@@ -203,16 +208,13 @@ def opt_err_file(arg='', i=0):
         is_param_next(arg, i)
 
     if args_raw:
-        ifile = args_raw.popleft()
-        if not isfile(f"{ifile}.err"):
-            err_file = f"{ifile}.err"
-        else:
-            err_file = counter_err_file(ifile)
+        err_file = f"{args_raw.popleft()}.err"
     else:
         print(f'Argument must be followed by a filename.', file=stderr)
         exit(1)
 
 
+# Adds an string to the arg_prefix global variable
 def opt_arg_prefix(arg='', i=0):
     global args_raw
     global arg_prefix
@@ -227,6 +229,7 @@ def opt_arg_prefix(arg='', i=0):
         exit(1)
 
 
+# Changes the value of the delimiter global variable.
 def opt_delimiter(arg='', i=0):
     global args_raw
     global delimiter
@@ -237,40 +240,50 @@ def opt_delimiter(arg='', i=0):
     if args_raw:
         delimiter = args_raw.popleft()
     else:
-        print(f'Argument must be followed by a filename', file=stderr)
+        print(f'Argument must be followed by a string (the delimiter).', file=stderr)
         exit(1)
 
 
+# Changes state of header boolean variable
 def opt_header(boolean):
     global header
     header = boolean
 
 
+# Changes state of csv boolean variable
 def opt_csv(boolean):
     global csv
     csv = boolean
 
 
 def cli():
-    global use_stdin, prefix_smi
-    global use_stdout
-    global use_smiles_err
-    global header
-    global csv
-    global input_file
-    global output_file
-    global err_file
-    global arg_prefix
-    global delimiter
+    global use_stdin # Whether to use stdin as input
+    global use_stdout # Whether to use stdout as output
+    global use_smiles_err # Whether to print smiles that give errors on the site to stderr
+    global header # Whether to keep the header that the admetlab portal adds to their results
+    global csv # Whether to keep admetlab's results in csv format or convert it to tsv
+    global input_file # Input file to be used (if any)
+    global output_file # Output file to be used (if any)
+    global err_file # Error file path for smiles that give errors to be used (if any)
+    global arg_prefix # Command line specified prefix to be added at the beggining of every result line
+    global prefix_smi # Line specific prefix to be added to the its corresponding line on the results
+    global delimiter # Delimiter to be used in order to detect line specific prefixes when using input file and stdin
 
-    global args_raw
+    global args_raw # Input arguments to be processed
+    
+    """
+    Smiles lists:
+    
+    Smiles from command line and from input file or stdin ar handled differently because only the later two may
+    have line specific prefixes.
+    """
+    arg_smiles = [] # List of smiles passed as command line arguments
+    smiles = [] # List of smiles passed by input file or stdin
 
-    arg_smiles = []
-    smiles = []
-
+    # Arguments and parameters parsed loop
     while args_raw:
-        arg = args_raw.popleft()
-        if arg.startswith('--'):
+        arg = args_raw.popleft() # Argument to be processed on this iteration
+        if arg.startswith('--'): # Handling long options
             if arg == '--help':
                 help(0)
             elif arg == '--stdin':
@@ -300,7 +313,7 @@ def cli():
             else:
                 print(f"Unknown option: {arg}\n", file=stderr)
                 help(1)
-        elif arg.startswith('-'):
+        elif arg.startswith('-'): # Handling short options
             if arg == '-':
                 opt_use_stdin(True)
             else:
@@ -333,51 +346,58 @@ def cli():
                     else:
                         print(f'Unknown option: {arg}\n', file=stderr)
                         help(1)
-        else:
+        else: # If the arguments doesn't start with a '-' it is assumed to be a smiles
             arg_smiles.append(arg)
 
+    # If no input file nor command line smiles are specified, it is assumed that the input will come from stdin
     if not input_file and len(arg_smiles) == 0:
         opt_use_stdin(True)
 
+    # Disables header if either input file or stdin are used
+    if input_file or use_stdin:
+        header = False
+
+    # Creates the prefix list if either a input file or stdin are used
     if input_file or use_stdin:
         prefix_smi = []
 
+    # Handles input file
     if input_file:
         with open(input_file, 'r') as ifile:
             for line in ifile.read().splitlines():
-                if not line:
+                if not line: # If the line is empty, skip it
                     continue
 
-                deli = line.rfind(delimiter)
-                if deli == -1:
+                deli = line.rfind(delimiter) # Detect last occurence of delimiter
+                if deli == -1: # If the delimiter is not detected
                     smiles.append(line)
                     prefix_smi.append('')
-                else:
+                else: # If the delimiter is detected
                     del_end = deli + len(delimiter)
                     smiles.append(line[del_end:])
                     prefix_smi.append(line[:del_end])
 
+    # Handles stdin
     if use_stdin:
         for line in stdin:
             line = line.rstrip()
-            if not line:
+            if not line: # If the line is empty, skip it
                 continue
 
-            deli = line.rfind(delimiter)
-            if deli == -1:
+            deli = line.rfind(delimiter) # Detect last occurence of delimiter
+            if deli == -1: # If the delimiter is not detected
                 smiles.append(line)
                 prefix_smi.append('')
-            else:
+            else: # If the delimiter is detected
                 del_end = deli + len(delimiter)
                 smiles.append(line[del_end:])
                 prefix_smi.append(line[:del_end])
 
-    if input_file or use_stdin:
-        header = False
-
+    # Uses default error file name if none has been specified and error smiles are not to be printed to stderr
     if not err_file and not use_smiles_err:
-        err_file = counter_err_file()
+        err_file = 'admetlab_errors.err'
 
+    # Downloads results and creates appropriate files (if any) for command line smiles
     if arg_smiles:
         try:
             download_admet(smiles=arg_smiles,
@@ -393,6 +413,7 @@ def cli():
             print(repr(error), file=stderr)
             exit(1)
 
+    # Downloads results and creates appropriate files (if any) for smiles from input file and stdin
     if smiles:
         try:
             download_admet(smiles=smiles,
@@ -410,7 +431,9 @@ def cli():
             exit(1)
 
 
+# Entry point for command line interface (cli)
 if __name__ == '__main__':
+    # Default values for the global variables
     use_stdin = False
     use_stdout = True
     use_smiles_err = True
@@ -424,6 +447,7 @@ if __name__ == '__main__':
     arg_prefix = ""
     delimiter = "\t"
 
+    # Removes the script's own name from the list of arguments and adds it to the args_raw variable as a doubly linked queue.
     args_raw = deque(argv[1:])
 
     cli()
